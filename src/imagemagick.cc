@@ -9,6 +9,7 @@
 #include "imagemagick.h"
 #include <list>
 #include <sstream>
+#include <iostream>
 #include <string.h>
 #include <exception>
 
@@ -119,17 +120,17 @@ inline Local<Value> WrapPointer(char *ptr) {
 }
 
 
-#define RETURN_BLOB_OR_ERROR(req) \
-    do { \
-        im_ctx_base* _context = static_cast<im_ctx_base*>(req->data); \
-        if (!_context->error.empty()) { \
-            Nan::ThrowError(_context->error.c_str()); \
-        } else { \
-            const Local<Value> _retBuffer = WrapPointer((char *)_context->dstBlob.data(), _context->dstBlob.length()); \
-            info.GetReturnValue().Set(_retBuffer); \
-        } \
-        delete req; \
-    } while(0);
+#define RETURN_BLOB_OR_ERROR(req)                                       \
+    im_ctx_base* _context = static_cast<im_ctx_base*>(req->data);       \
+    if (!_context->error.empty()) {                                     \
+        Local<Value> ex = Exception::Error(Nan::New<String>(_context->error.c_str()).ToLocalChecked()); \
+        delete _context;                                                \
+        return Nan::ThrowError(ex);                                     \
+    } else {                                                            \
+        const Local<Value> _retBuffer = WrapPointer((char *)_context->dstBlob.data(), _context->dstBlob.length()); \
+        info.GetReturnValue().Set(_retBuffer);                          \
+    }                                                                   \
+    delete req;                                                         \
 
 
 bool ReadImageMagick(Magick::Image *image, Magick::Blob srcBlob, std::string srcFormat, im_ctx_base *context) {
@@ -157,6 +158,7 @@ bool ReadImageMagick(Magick::Image *image, Magick::Blob srcBlob, std::string src
         context->error = std::string("unhandled error");
         return false;
     }
+
     return true;
 }
 
@@ -573,7 +575,7 @@ NAN_METHOD(Convert) {
 
         uv_queue_work(uv_default_loop(), req, DoConvert, (uv_after_work_cb)GeneratedBlobAfter);
 
-		return;
+        return;
     } else {
         DoConvert(req);
         RETURN_BLOB_OR_ERROR(req)

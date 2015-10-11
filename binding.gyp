@@ -46,6 +46,8 @@
         ['OSX_VER == "10.9" or OSX_VER == "10.10"', {
           'xcode_settings': {
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+            'GCC_ENABLE_CPP_RTTI': 'YES',
+            'CLANG_CXX_LANGUAGE_STANDARD': 'c++11',
             'OTHER_CFLAGS': [
               '<!@(Magick++-config --cflags)'
             ],
@@ -67,6 +69,8 @@
         ['OS=="mac"', {
           'xcode_settings': {
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+            'GCC_ENABLE_CPP_RTTI': 'YES',
+            'CLANG_CXX_LANGUAGE_STANDARD': 'c++11',
             'OTHER_CFLAGS': [
               '<!@(Magick++-config --cflags)'
             ]
